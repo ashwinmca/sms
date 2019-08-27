@@ -70,7 +70,7 @@ export default class FirstPage extends Component {
         onChangeText={(text) => this.setState({text})}
         value={this.state.text}/>
 
-        <Button title="Go next" onPress={() => navigate('SecondPage')} />
+        {/* <Button title="Go next" onPress={() => navigate('SecondPage')} /> */}
 
         <Button title="Submit" onPress={() => navigate('ThirdPage')} />
         <Button title="Signup" onPress={() => navigate('SignUp')} />
