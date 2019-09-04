@@ -1,25 +1,16 @@
-//Example to Refresh Previous Screen When Going Back in React Navigation//
-import React, { Component } from 'react';
-//import react in our code. 
- 
-import {createStackNavigator,createAppContainer} from 'react-navigation';
-//import Navigator in our project
- 
-import FirstPage from './pages/FirstPage';
-import SecondPage from './pages/SecondPage';
-import ThirdPage from './pages/ThirdPage'
-import SignUp from './pages/SignUp'
+import React, {Component} from 'react';
 
-//import all the screens we are going to switch 
- 
-const App = createStackNavigator({
-    FirstPage: { screen: FirstPage }, 
-    SecondPage: { screen: SecondPage },
-    ThirdPage: {screen: ThirdPage}, 
-    SignUp:{screen: SignUp},
-  },
-  {
-    initialRouteName: 'FirstPage',
+import NavigationController from './components/NavigationController';
+
+
+type Props = {};
+export default class App extends Component<Props> {
+  static navigationOptions = {
+       header: null,
+    };
+  
+  render() {
+    return <NavigationController />;
   }
-);
-export default createAppContainer(App);
+}
+
