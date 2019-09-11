@@ -37,7 +37,7 @@ import ListofStudents from './ListofStudents'
 	
 	},
 	{
-    	initialRouteName: 'LoginView',
+    	initialRouteName: 'AddNewStudent',
   	}
 
 );
