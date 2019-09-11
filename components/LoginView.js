@@ -7,12 +7,12 @@ import {
   Button,
   TouchableHighlight,
   Image,
+  
   Alert
 } from 'react-native';
-	
-import { openDatabase } from 'react-native-sqlite-storage';
-//Connction to access the pre-populated user_db.db
-var db = openDatabase({ name: 'student_db.db'});
+  
+import NetInfo from "@react-native-community/netinfo";
+
 
 export default class LoginView extends Component {
     static navigationOptions = {
@@ -20,80 +20,161 @@ export default class LoginView extends Component {
      };
   constructor(props) {
     super(props);
-
-
-    db.transaction(function(txn) {
-      txn.executeSql(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='tbl_student'",
-        [],
-        function(tx, res) {
-          console.log('item:', res.rows.length);
-          if (res.rows.length == 0) {
-            txn.executeSql('DROP TABLE IF EXISTS tbl_student', []);
-            txn.executeSql(
-              'CREATE TABLE IF NOT EXISTS tbl_student(fullname TEXT, DOB TEXT, age TEXT,LastEducation TEXT,Specialization TEXT,address TEXT,state TEXT,pin TEXT)',
-              []
-            );
-          }
-        }
-      );
-    });
-
-
-    state = {
+ 
+    this.state = {
       email   : '',
       password: '',
+      connection_Status : "",
+      dataSource:[],
+      STATUS:''
     }
   }
   
-  onClickForgotPassword = (viewId) => {
-    this.props.navigation.navigate('ForgotPassword')
-    
-   // Alert.alert("Alert", "Button pressed "+viewId);
-  }
+  
 
   onClickListener = (viewId) => {
     this.props.navigation.navigate('ListofStudents')
     
    // Alert.alert("Alert", "Button pressed "+viewId);
   }
-  onClickListenerSignup = (viewId) => {
-    this.props.navigation.navigate('SignUpView')
+  
+  CheckConnectivity = () => {
+    // For Android devices viewId
+    if (Platform.OS === "android") {
+      NetInfo.isConnected.fetch().then(isConnected => {
+        if (isConnected) {
+          //Alert.alert("You are onlinessss!");
+          this.getDataUsingGet();
+          
     
-   // Alert.alert("Alert", "Button pressed "+viewId);
-  }
+          
+        } else {
+          Alert.alert("Please check your internet connection!");
+        }
+      });
+    } else {
+      // For iOS devices
+      NetInfo.isConnected.addEventListener(
+        "connectionChange",
+        this.handleFirstConnectivityChange
+      );
+    }
+  };
+
+  handleFirstConnectivityChange = isConnected => {
+    NetInfo.isConnected.removeEventListener(
+      "connectionChange",
+      this.handleFirstConnectivityChange
+    );
+
+    if (isConnected === false) {
+      Alert.alert("You are offline!");
+    } else {
+      Alert.alert("You are online!");
+      if(this.state.dataSource.STATUS="success")
+      
+      {
+        this.props.navigation.navigate('ListofStudents')
+      }
+
+
+      //http://125.16.159.87/Iostest6/sample.asmx/Testselect?uname=100320&pwd=apollo
+    }
+  };
+            CheckTextInput = () => {
+              //Handler for the Submit onPress
+              if (this.state.email != '') {
+                //Check for the Name TextInput
+                if (this.state.password != '') {
+                  //Check for the Email TextInput
+                  //alert('Success')
+                  
+                 this.CheckConnectivity();
+                } else {
+                  alert('Please Enter Password');
+                }
+              } else {
+                alert('Please Enter ExecutiveID');
+              }
+            };
+
+     getDataUsingGet(){
+       
+      //GET request 
+      fetch(`http://125.16.159.87/Iostest6/sample.asmx/Testselect?uname=${this.state.email}&pwd=${this.state.password}`, {
+          method: 'GET'
+          //Request Type 
+      })
+      .then((response) => response.json())
+      //If response is in json then in success
+      .then((responseJson) => {
+          //Success 
+          
+          dataSource = responseJson;
+          //alert(JSON.stringify(dataSource[0].STATUS))
+          
+          
+          console.log(responseJson);
+          
+          if(dataSource[0].STATUS == "success")
+          {
+            // this.state.email='';
+            //       this.state.password='';
+            this.props.navigation.navigate('SignUpView');
+
+          }
+          else
+          {
+            alert(JSON.stringify(dataSource[0].STATUS));
+
+          }
+          
+
+      })
+      //If response is not in json then in error
+      .catch((error) => {
+          //Error 
+          alert(JSON.stringify(error));
+          console.error(error);
+      });
+    }
+
+    
+
   render() {
     return (
+      
+
       <View style={styles.container}>
+        <View >
+          <Image style={styles.logoContainer} source={require('../img/logo.png')}/>
+        
+        </View>
+
         <View style={styles.inputContainer}>
-          <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/nolan/64/000000/email.png'}}/>
+          {/* <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/nolan/64/000000/email.png'}}/> */}
           <TextInput style={styles.inputs}
-              placeholder="Email"
-              keyboardType="email-address"
+              placeholder="Enter Execitive ID"
+              keyboardType="number-pad"
               underlineColorAndroid='transparent'
+             
               onChangeText={(email) => this.setState({email})}/>
         </View>
         
         <View style={styles.inputContainer}>
-          <Image style={styles.inputIcon} source={{uri: 'https://png.icons8.com/key-2/ultraviolet/50/3498db'}}/>
+          {/* <Image style={styles.inputIcon} source={{uri: 'https://png.icons8.com/key-2/ultraviolet/50/3498db'}}/> */}
           <TextInput style={styles.inputs}
-              placeholder="Password"
+              placeholder="Enter Password"
               secureTextEntry={true}
               underlineColorAndroid='transparent'
               onChangeText={(password) => this.setState({password})}/>
         </View>
 
-        <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.onClickListener('login')}>
+        <TouchableHighlight style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.CheckTextInput('login')}>
           <Text style={styles.loginText}>Login</Text>
         </TouchableHighlight>
 
-        <TouchableHighlight style={styles.buttonContainer} onPress={() => this.onClickForgotPassword('restore_password')}>
-            <Text>Forgot your password?</Text>
-        </TouchableHighlight>
-
-        <TouchableHighlight style={styles.buttonContainer} onPress={() => this.onClickListenerSignup('register')}>
-            <Text>Register</Text>
-        </TouchableHighlight>
+        
       </View>
     );
   }
@@ -107,6 +188,17 @@ const styles = StyleSheet.create({
     //backgroundColor: '#DCDCDC',
     backgroundColor: '#00b5ec',
   },
+  logoContainer: {
+    
+    borderRadius:30,
+    borderBottomWidth: 1,
+    width:250,
+    height:250,
+    // marginTop:40,
+     marginBottom:50,
+    flexDirection: 'column',
+    alignItems:'center'
+},
   inputContainer: {
       borderBottomColor: '#F5FCFF',
       backgroundColor: '#FFFFFF',
@@ -120,7 +212,8 @@ const styles = StyleSheet.create({
   },
   inputs:{
       height:45,
-      marginLeft:16,
+      marginLeft:20,
+      alignItems:'center',
       borderBottomColor: '#FFFFFF',
       flex:1,
   },

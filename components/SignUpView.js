@@ -8,12 +8,10 @@ import {
   Button,
   TouchableHighlight,
   Image,
+  ScrollView,
+ 
   Alert
 } from 'react-native';
-
-import { openDatabase } from 'react-native-sqlite-storage';
-//Connction to access the pre-populated user_db.db
-var db = openDatabase({ name: 'student_db.db', createFromLocation : 1});
 
 
 export default class SignUpView extends Component {
@@ -23,18 +21,17 @@ export default class SignUpView extends Component {
   constructor(props) {
     super(props);
     this.state = {date:new Date().getDate()},
-    state = {
-      fullName: '',
-      DOB   : '',
-      Age: '',
-      Education: '',
-      Special: '',
-      Add: '',
-      State: '',
-      Pin: '',
-      DateText: '',
- 
-      DateHolder: null,
+    this.state = {
+      ExecutiveID:'',
+      PatientName: '',
+      RefDoctorName : '',
+      RefDonctorPhone: '',
+      Speciality: '',
+      FromLocation: '',
+      IPNO: '',
+      UnderDoctorName: '',
+      Tolocaion: ''
+     
     }
   }
 
@@ -49,174 +46,165 @@ export default class SignUpView extends Component {
   }
 
   register_user = () => {
-    var that = this;
-
-    const {fullName}= this.state;
     
-    const {Age}= this.state;
-    const {Education}= this.state;
-    const {Special}= this.state;
-    const {Add}= this.state;
-    const {State}= this.state;
-    const {Pin}= this.state;
-    const {date}= this.state;
+    if (this.state.ExecutiveID != '') {
+      if (this.state.PatientName!= '') {
+        if (this.state.RefDoctorName!= '') {
+          if (this.state.FromLocation!= '') {
 
-    
+            
+             //GET request 
+      fetch(`http://125.16.159.87:8029/service1.asmx/ExecutiveSMS?Executive=${this.state.ExecutiveID}&PatientName=${this.state.PatientName}&ReferalDoctor=${this.state.RefDoctorName}&ReferalDoctorPhno=${this.state.RefDonctorPhone}&Speciality=${this.state.Speciality}&FromLocation=${this.state.FromLocation}&IPNO=${this.state.IPNO}&UnderDoctor=${this.state.UnderDoctorName}&ToLocation=${this.state.Tolocaion}`, {
+        method: 'GET'
+        //Request Type 
+    })
+    .then((response) => response.json())
+    //If response is in json then in success
+    .then((responseJson) => {
+        //Success 
+        
+        dataSource = responseJson;
+        //alert(JSON.stringify(dataSource[0].STATUS))
+        
+        
+        console.log(responseJson);
+        
+        if(dataSource[0].message == "success")
+        {
+          // this.state.email='';
+          //       this.state.password='';
+          this.props.navigation.navigate('LoginView');
+          alert(JSON.stringify(dataSource[0].message));
 
-      if (fullName) {
-        if (Age) {
-          if (Education) {
-            db.transaction(function(tx) {
-              tx.executeSql(
-                'INSERT INTO tbl_student (fullname, DOB, age,LastEducation,Specialization,address,state,pin) VALUES (?,?,?,?,?,?,?,?)',
-      ["abc", "1-1-2000", "67","bsc","mca","add","state","4566"],
-                (tx, results) => {
-                  console.log('Results', results.rowsAffected);
-                  if (results.rowsAffected > 0) {
-                    Alert.alert(
-                      'Success',
-                      'You are Registered Successfully',
-                      [
-                        {
-                          text: 'Ok',
-                          onPress: () =>
-                            that.props.navigation.navigate('HomeScreen'),
-                        },
-                      ],
-                      { cancelable: false }
-                    );
-                  } else {
-                    alert('Registration Failed');
-                  }
-                }
-              );
-            });
+        }
+        else
+        {
+          alert(JSON.stringify(dataSource[0].STATUS));
+
+        }
+        
+
+    })
+    //If response is not in json then in error
+    .catch((error) => {
+        //Error 
+        alert(JSON.stringify(error));
+        console.error(error);
+    });
+
+         
           } else {
-            alert('Please fill Address');
+            alert('Please Enter From Location');
           }
         } else {
-          alert('Please fill Contact Number');
+          alert('Please Enter Referal DoctorName');
         }
       } else {
-        alert('Please fill Name');
+        alert('Please Enter Patient Name');
       }
+    }
+    else{
+      alert('Please Enter ExecutiveID');
+    }
   };
 
 
   render() {
     return (
+      
+
+      
       <View style={styles.container}>
+        <ScrollView    contentContainerStyle={styles.contentContainer}>
+          
+
+          
         <View style={styles.inputContainer}>
           <TextInput style={styles.inputs}
-              placeholder="Full name"
-              keyboardType="email-address"
-              underlineColorAndroid='transparent'
-              onChangeText={(fullName) => this.setState({fullName})}/>
-        </View>
-
-        {/* <View style={styles.inputContainer}>
-          <TextInput style={styles.inputs}
-              placeholder="Date of Birth"
+              placeholder="ExecutiveID*"
               keyboardType="number-pad"
               underlineColorAndroid='transparent'
-              onChangeText={(DOB) => this.setState({DOB})}/>
-        </View> */}
+              onChangeText={(ExecutiveID) => this.setState({ExecutiveID})}/>
+        </View>
+       
+        <View style={styles.inputContainer}>
+          <TextInput style={styles.inputs}
+              placeholder="Patient Name*"
+              keyboardType="default"
+              underlineColorAndroid='transparent'
+              onChangeText={(PatientName) => this.setState({PatientName})}/>
+        </View>
 
         <View style={styles.inputContainer}>
-          <Text>DOB</Text>
- 
-        <DatePicker
-          style={{width: 280}}
-          date={this.state.date} //initial date from state
-          //date=moment(date).format('DD-MMM-YYYY')
-          
+          <TextInput style={styles.inputs}
+              placeholder="Referal Doctor Name*"
+              keyboardType="default"
+              underlineColorAndroid='transparent'
+              onChangeText={(RefDoctorName) => this.setState({RefDoctorName})}/>
+        </View>
 
-          mode="date" //The enum of date, datetime and time
-          placeholder="select DOB"
-          format="DD-MM-YYYY"
-          minDate="01-01-2016"
-          
-          maxDate={this.state.date}
-          confirmBtnText="Confirm"
-          cancelBtnText="Cancel"
-          
-          customStyles={{
-            dateIcon: {
-              position: 'absolute',
-              left: 0,
-              top: 4,
-              marginLeft: 0
-            },
-            dateInput: {
-              borderWidth:0,
-              justifyContent: 'center',
-    alignItems: 'center',
-              marginLeft: 15
-            }
-          }}
-         
-          onDateChange={(date) => {this.setState({date: date})}}
-        />
- 
-      </View>
+      
 
 
         <View style={styles.inputContainer}>
           <TextInput style={styles.inputs}
-              placeholder="Age"
+              placeholder="Referal Doctor Phone Number"
               keyboardType="number-pad"
               underlineColorAndroid='transparent'
-              onChangeText={(Age) => this.setState({Age})}/>
+              onChangeText={(RefDonctorPhone) => this.setState({RefDonctorPhone})}/>
         </View>
 
         <View style={styles.inputContainer}>
           <TextInput style={styles.inputs}
-              placeholder="Latest Education"
-              keyboardType="email-address"
+              placeholder="Speciality/Treatment"
+              keyboardType="default"
               underlineColorAndroid='transparent'
-              onChangeText={(Education) => this.setState({Education})}/>
+              onChangeText={(Speciality) => this.setState({Speciality})}/>
         </View>
 
         <View style={styles.inputContainer}>
           <TextInput style={styles.inputs}
-              placeholder="Specialization"
-              keyboardType="email-address"
+              placeholder="From Location*"
+              keyboardType="default"
               underlineColorAndroid='transparent'
-              onChangeText={(Special) => this.setState({Special})}/>
+              onChangeText={(FromLocation) => this.setState({FromLocation})}/>
         </View>
 
         <View style={styles.inputContainer}>
           <TextInput style={styles.inputs}
-              placeholder="Address"
-              keyboardType="email-address"
+              placeholder="IPNO"
+              keyboardType="default"
               underlineColorAndroid='transparent'
-              onChangeText={(Add) => this.setState({Add})}/>
+              onChangeText={(IPNO) => this.setState({IPNO})}/>
         </View>
 
         <View style={styles.inputContainer}>
           
           <TextInput style={styles.inputs}
-              placeholder="State"
-              keyboardType="email-address"
+              placeholder="Under Doctor Name"
+              keyboardType="default"
               underlineColorAndroid='transparent'
-              onChangeText={(State) => this.setState({State})}/>
+              onChangeText={(UnderDoctorName) => this.setState({UnderDoctorName})}/>
         </View>
         
         <View style={styles.inputContainer}>
           
           <TextInput style={styles.inputs}
-              placeholder="Pincode"
+              placeholder="To Locaion"
               
-              keyboardType="number-pad"
+              keyboardType="default"
               underlineColorAndroid='transparent'
-              onChangeText={(Pin) => this.setState({Pin})}/>
+              onChangeText={(Tolocaion) => this.setState({Tolocaion})}/>
         </View>
         
 
-        <TouchableHighlight style={[styles.buttonContainer, styles.signupButton]} onPress={() => this.register_user.bind(this)}>
-          <Text style={styles.signUpText}>Sign up</Text>
+        <TouchableHighlight style={[styles.buttonContainer, styles.signupButton]} onPress={() => this.register_user()}>
+          <Text style={styles.signUpText}>SEND</Text>
         </TouchableHighlight>
+        
+        </ScrollView>
       </View>
+      
     );
   }
 }
@@ -227,18 +215,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#00b5ec',
+    
+    marginBottom:0,
+    
+  },
+  contentContainer: {
+    paddingVertical: 20
   },
   inputContainer: {
-      borderBottomColor: '#F5FCFF',
-      backgroundColor: '#FFFFFF',
-      borderRadius:30,
-      borderBottomWidth: 1,
-      width:280,
-      height:45,
-      marginBottom:20,
-      flexDirection: 'row',
-      alignItems:'center'
-  },
+    borderBottomColor: '#F5FCFF',
+    backgroundColor: '#FFFFFF',
+    borderRadius:30,
+    borderBottomWidth: 1,
+    width:280,
+    height:45,
+    
+    marginBottom:20,
+    flexDirection: 'row',
+    alignItems:'center'
+},
   datecontainer: {
     flex: 1,
     alignItems: 'center',
@@ -264,7 +259,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom:20,
-    width:250,
+    width:280,
     borderRadius:30,
   },
   signupButton: {
